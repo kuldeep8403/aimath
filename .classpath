@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" output="target/classes" path="src/main/java">
+		<attributes>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry excluding="**" kind="src" output="target/classes" path="src/main/resources">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/java">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry excluding="**" kind="src" output="target/test-classes" path="src/test/resources">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/async-http-client-2.12.3.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/async-http-client-netty-utils-2.12.3.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/byte-buddy-1.14.5.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/commons-io-2.14.0.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/commons-lang3-3.13.0.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/gson-2.10.1.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/guava-32.1.2-jre.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/java-client-8.6.0.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/netty-buffer-4.1.96.Final.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/netty-codec-4.1.96.Final.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/netty-codec-http-4.1.96.Final.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/netty-common-4.1.96.Final.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/netty-handler-4.1.96.Final.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/netty-resolver-4.1.96.Final.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/netty-transport-4.1.96.Final.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/selenium-api-4.13.0.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/selenium-java-4.15.0.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/selenium-remote-driver-4.13.0.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/selenium-support-4.13.0.jar"/>
+	<classpathentry kind="lib" path="/Users/ios/Desktop/AppiumJars/slf4j-api-2.0.9.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>
