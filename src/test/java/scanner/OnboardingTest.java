@@ -143,36 +143,89 @@ public class OnboardingTest {
         waitForActivity("HelpUsActivity", 10);
         Assertions.assertTrue(act().contains("HelpUs"), "Not on HelpUsActivity: " + act());
 
-        // Click Continue button
-        log("  Clicking Continue");
-        boolean clicked = clickByText("Continue", 3);
+        // Dump all clickable elements so we can see the Continue button's real ID and position
+        logAllButtons();
+
+        // Try multiple strategies to click Continue
+        boolean clicked = false;
+
+        // 1. By resource ID (common patterns)
+        for (String id : new String[]{
+                PKG + ":id/btnContinue",
+                PKG + ":id/btn_continue",
+                PKG + ":id/continueBtn",
+                PKG + ":id/button_continue",
+                PKG + ":id/tvContinue",
+                PKG + ":id/tv_continue"}) {
+            if (clickById(id, 1)) {
+                log("  Clicked by id: " + id);
+                clicked = true;
+                break;
+            }
+        }
+
+        // 2. By text (case-insensitive via XPath)
         if (!clicked) {
-            log("  Fallback ADB tap (" + HELPUS_CONTINUE_X + "," + HELPUS_CONTINUE_Y + ")");
+            try {
+                WebElement btn = driver.findElement(
+                    By.xpath("//*[contains(translate(@text,'continue','CONTINUE'),'CONTINUE')]"));
+                log("  Found by text: '" + btn.getText() + "' at " +
+                    btn.getLocation().x + "," + btn.getLocation().y);
+                btn.click();
+                clicked = true;
+            } catch (Exception e) {
+                log("  Not found by text: " + e.getMessage());
+            }
+        }
+
+        // 3. Last clickable element on screen (Continue is usually the bottom button)
+        if (!clicked) {
+            try {
+                java.util.List<WebElement> btns = driver.findElements(
+                    By.xpath("//*[@clickable='true']"));
+                log("  Clickable elements count: " + btns.size());
+                for (WebElement b : btns) {
+                    log("    >> id=" + b.getAttribute("resource-id")
+                        + " text='" + b.getText() + "' at "
+                        + b.getLocation().x + "," + b.getLocation().y);
+                }
+                if (!btns.isEmpty()) {
+                    WebElement last = btns.get(btns.size() - 1);
+                    log("  Clicking last button: '" + last.getText() + "'");
+                    last.click();
+                    clicked = true;
+                }
+            } catch (Exception e) {
+                log("  Element scan failed: " + e.getMessage());
+            }
+        }
+
+        if (!clicked) {
+            log("  All Appium strategies failed — ADB tap (" + HELPUS_CONTINUE_X + "," + HELPUS_CONTINUE_Y + ")");
             adbTap(HELPUS_CONTINUE_X, HELPUS_CONTINUE_Y);
         }
 
-        // If Play Store / Vivo Store opens, immediately kill it and bring our app back
-        for (int i = 0; i < 12; i++) {
-            TimeUnit.MILLISECONDS.sleep(500);
-            String cur = act();
-            if (cur.contains("NewOnBoarding") || cur.contains("AdActivity")) {
-                log("  ✅ Navigated to: " + cur);
-                break;
-            }
-            if (!cur.contains(PKG) && !cur.contains("HelpUs")) {
-                log("  External app opened (" + cur + ") — closing and returning");
-                forceStopAllExternalApps();
-                TimeUnit.MILLISECONDS.sleep(300);
-                bringAppToFront();
-            }
-        }
-
+        TimeUnit.SECONDS.sleep(3);
         String act = act();
         log("After HelpUs Continue: " + act);
         Assertions.assertTrue(
             act.contains("NewOnBoarding") || act.contains("AdActivity"),
             "Expected NewOnBoarding or AdActivity. Got: " + act);
         log("✅ PASS");
+    }
+
+    static void logAllButtons() {
+        try {
+            java.util.List<WebElement> all = driver.findElements(
+                By.xpath("//*[@clickable='true']"));
+            log("  --- Clickable elements on screen ---");
+            for (WebElement e : all) {
+                log("    id=" + e.getAttribute("resource-id")
+                    + " text='" + e.getText() + "' bounds="
+                    + e.getLocation() + " size=" + e.getSize());
+            }
+            log("  --- end ---");
+        } catch (Exception ignored) {}
     }
 
     @Test @Order(4)
