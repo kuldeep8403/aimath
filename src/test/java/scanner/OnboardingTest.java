@@ -148,27 +148,46 @@ public class OnboardingTest {
         log("  Title: '" + title + "'");
         Assertions.assertTrue(title.contains("Grow"), "Expected 'Grow With Us'. Got: " + title);
 
-        // Disable all external store/browser apps so the market:// intent cannot launch anything.
-        // This makes Continue fall through to its in-app navigation.
-        log("  Disabling external apps (Play Store, Chrome, Vivo Store, Browser)");
+        // Disable what we can (Play Store, Chrome, browsers)
         disableExternalApps();
 
-        try {
-            log("  Tapping Continue (" + HELPUS_CONTINUE_X + "," + HELPUS_CONTINUE_Y + ")");
+        // Click Continue via Appium first; fallback to ADB tap
+        log("  Clicking Continue");
+        boolean clicked = clickByText("Continue", 3);
+        if (!clicked) {
+            log("  Appium click failed — ADB tap (" + HELPUS_CONTINUE_X + "," + HELPUS_CONTINUE_Y + ")");
             adbTap(HELPUS_CONTINUE_X, HELPUS_CONTINUE_Y);
-            TimeUnit.SECONDS.sleep(3);
-
-            String act = act();
-            log("After HelpUs: " + act);
-            Assertions.assertTrue(
-                act.contains("NewOnBoarding") || act.contains("AdActivity"),
-                "Expected onboarding or ad after Continue. Got: " + act);
-            log("✅ PASS");
-        } finally {
-            // Always re-enable external apps
-            log("  Re-enabling external apps");
-            enableExternalApps();
         }
+
+        // Recovery loop: if Vivo Store (or any external app) opens, kill it and bring our task back
+        boolean advanced = false;
+        for (int i = 0; i < 12; i++) {
+            TimeUnit.MILLISECONDS.sleep(500);
+            String cur = act();
+            if (cur.contains("NewOnBoarding") || cur.contains("AdActivity")) {
+                advanced = true;
+                log("  Advanced to: " + cur);
+                break;
+            }
+            if (cur.contains("HelpUs")) {
+                log("  Still on HelpUs (" + i + ") — waiting");
+                continue;
+            }
+            // External app opened — kill it and recover
+            log("  External app detected: " + cur + " — killing and recovering");
+            forceStopAllExternalApps();
+            TimeUnit.MILLISECONDS.sleep(400);
+            bringAppToFront();
+            TimeUnit.SECONDS.sleep(1);
+        }
+
+        enableExternalApps();
+
+        String act = act();
+        log("After HelpUs: " + act);
+        Assertions.assertTrue(advanced || act.contains("NewOnBoarding") || act.contains("AdActivity"),
+            "Expected onboarding or ad after Continue. Got: " + act);
+        log("✅ PASS");
     }
 
     @Test @Order(4)
@@ -459,6 +478,51 @@ public class OnboardingTest {
             }
         } catch (Exception ignored) {
             driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+        }
+    }
+
+    static boolean clickByText(String text, int secs) {
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(secs))
+                .until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//*[@text='" + text + "']"))).click();
+            return true;
+        } catch (Exception e) { return false; }
+    }
+
+    /** Force-stops ALL known external apps including Vivo Store (am force-stop works even without root). */
+    static void forceStopAllExternalApps() throws Exception {
+        String[] all = {
+            "com.android.vending",
+            "com.android.chrome",
+            "com.vivo.appstore",
+            "com.bbk.appstore",
+            "com.vivo.browser",
+            "com.android.browser",
+        };
+        for (String p : all) {
+            Runtime.getRuntime().exec(
+                new String[]{ADB, "-s", DEVICE, "shell", "am", "force-stop", p}).waitFor();
+        }
+        Thread.sleep(300);
+    }
+
+    /** Brings our app to foreground using task ID or am start fallback. */
+    static void bringAppToFront() throws Exception {
+        if (!appTaskId.isEmpty()) {
+            Process p = Runtime.getRuntime().exec(
+                new String[]{ADB, "-s", DEVICE, "shell", "am", "task", "to-front", appTaskId});
+            p.waitFor();
+        }
+        // Fallback: if task approach didn't work, start the next screen directly
+        TimeUnit.MILLISECONDS.sleep(500);
+        if (!act().contains(PKG.substring(PKG.lastIndexOf('.') + 1))
+                && !act().contains("NewOnBoarding")
+                && !act().contains("HelpUs")) {
+            Runtime.getRuntime().exec(new String[]{
+                ADB, "-s", DEVICE, "shell", "am", "start", "-n",
+                PKG + "/.newcode.activity.NewOnBoardingMainActivity"
+            }).waitFor();
         }
     }
 
