@@ -144,17 +144,32 @@ public class OnboardingTest {
         log("  Title: '" + title + "'");
         Assertions.assertTrue(title.contains("Grow"), "Expected 'Grow With Us'. Got: " + title);
 
-        log("  Tapping Continue (" + HELPUS_CONTINUE_X + "," + HELPUS_CONTINUE_Y + ")");
-        adbTap(HELPUS_CONTINUE_X, HELPUS_CONTINUE_Y);
-        TimeUnit.SECONDS.sleep(3);
+        // Continue button sometimes opens Play Store / Chrome / Vivo Store.
+        // Strategy: tap → proactively kill all known external apps → retry up to 3 times.
+        boolean advanced = false;
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            log("  Tapping Continue attempt " + attempt + " (" + HELPUS_CONTINUE_X + "," + HELPUS_CONTINUE_Y + ")");
+            adbTap(HELPUS_CONTINUE_X, HELPUS_CONTINUE_Y);
+            TimeUnit.SECONDS.sleep(2);
 
-        // Recover if external app opened (Chrome / Play Store / Vivo Store)
-        recoverFromExternalApp();
+            // Proactively kill external apps regardless — safe even if they didn't open
+            killExternalApps();
+            TimeUnit.SECONDS.sleep(1);
+
+            String act = act();
+            log("  After attempt " + attempt + ": " + act);
+            if (act.contains("NewOnBoarding") || act.contains("AdActivity")) {
+                advanced = true;
+                break;
+            }
+            if (act.contains("HelpUs")) {
+                log("  Still on HelpUs — retrying...");
+            }
+        }
 
         log("After HelpUs: " + act());
-        Assertions.assertTrue(
-            act().contains("NewOnBoarding") || act().contains("AdActivity") || act().contains("Onboard"),
-            "Expected onboarding or ad. Got: " + act());
+        Assertions.assertTrue(advanced,
+            "Could not advance past Grow With Us after 3 attempts. Got: " + act());
         log("✅ PASS");
     }
 
@@ -361,25 +376,12 @@ public class OnboardingTest {
         } catch (Exception e) { return false; }
     }
 
-    /** Kills Chrome / Play Store / Vivo Store if they opened, brings app back. */
-    static void recoverFromExternalApp() throws Exception {
-        String act = act();
-        String[] externalPkgs = {"com.android.chrome", "com.android.vending", "com.bbk.appstore"};
-        for (String ep : externalPkgs) {
-            if (act.toLowerCase().contains(ep.split("\\.")[2])) {
-                log("  External app open (" + ep + ") — killing it");
-                Runtime.getRuntime().exec(new String[]{ADB, "-s", DEVICE, "shell", "am", "force-stop", ep}).waitFor();
-                TimeUnit.SECONDS.sleep(1);
-                return;
-            }
-        }
-        if (act.contains("Launcher") || act.contains("bbk")) {
-            log("  Launcher detected — bringing app back");
-            Runtime.getRuntime().exec(new String[]{
-                ADB, "-s", DEVICE, "shell", "monkey", "-p", PKG, "-c",
-                "android.intent.category.LAUNCHER", "1"
-            }).waitFor();
-            TimeUnit.SECONDS.sleep(2);
+    /** Proactively kills all known external apps — safe to call even if none opened. */
+    static void killExternalApps() throws Exception {
+        String[] pkgs = {"com.android.chrome", "com.android.vending", "com.bbk.appstore"};
+        for (String p : pkgs) {
+            Runtime.getRuntime().exec(
+                new String[]{ADB, "-s", DEVICE, "shell", "am", "force-stop", p}).waitFor();
         }
     }
 
