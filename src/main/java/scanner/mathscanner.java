@@ -1,5 +1,3 @@
-
-
 package scanner;
 
 import io.appium.java_client.android.AndroidDriver;
@@ -229,7 +227,7 @@ public class mathscanner {
 //        if (exitCode != 0) throw new Exception("Image generation failed!");
 //        System.out.println("✅ Pre-step done");
 //    }
-    
+
     public static void preStep_GenerateAndPushImage() throws Exception {
         System.out.println("\n========================================");
         System.out.println("🔷 PRE-STEP — Generate & Push Math Image");
@@ -312,8 +310,8 @@ public class mathscanner {
         if (exitCode != 0) throw new Exception("Image generation failed!");
         System.out.println("✅ Pre-step done");
     }
-    
-    
+
+
  // ================================================================
 //  AUTO DETECT DEVICE
 //================================================================
@@ -763,7 +761,7 @@ public static String detectDevice() throws Exception {
         System.out.println("📱 After Done: " + act.trim());
         System.out.println("✅ Screen 12 done");
     }
-    
+
 //    public static void screen12_SelectImageAndDone() throws Exception {
 //    System.out.println("\n========================================");
 //    System.out.println("🔷 SCREEN 12 — Select Image & Done");
@@ -819,7 +817,7 @@ public static String detectDevice() throws Exception {
         printScreen("After crop confirm");
         System.out.println("✅ Screen 13 done");
     }
-   
+
 
     // ================================================================
     //   SCREEN 14 — WAIT FOR SCAN & TAP SHOW SOLVING STEPS
@@ -938,99 +936,7 @@ public static String detectDevice() throws Exception {
 //   Skip button: btnSkip bounds=[907,149][1036,225] → center (971,187)
 // ================================================================
 //public static void screen18_SolutionScreen() throws Exception {
-//    System.out.println("\n========================================");
-//    System.out.println("🔷 SCREEN 18 — Solution Screen");
-//    System.out.println("========================================");
-//
-//    // Step 1: Solution tab tap
-//    // tvChat bounds=[216,2171][432,2217] → center (324, 2194)
-//    System.out.println("Tapping Solution tab (324, 2194)");
-//    adbTap(324, 2194);
-//    Thread.sleep(2000);
-//
-//    // Step 2: CLR — clear previous input
-//    // content-desc="clear" bounds=[838,1934][951,2041] → center (894, 1987)
-//    System.out.println("Tapping CLR (894, 1987)");
-//    adbTap(894, 1987);
-//    Thread.sleep(500);
-//
-//    // Step 3: Type equation char by char
-//    System.out.println("Typing equation: " + equation);
-//    String eq = equation.replace(" ", "");
-//    for (char c : eq.toCharArray()) {
-//        int[] coords = keyMap.get(c);
-//        if (coords != null) {
-//            System.out.println("   Typing: '" + c + "' → (" + coords[0] + "," + coords[1] + ")");
-//            adbTap(coords[0], coords[1]);
-//            Thread.sleep(300);
-//        } else {
-//            System.out.println("   ⚠️ Key not mapped: '" + c + "' — skipping");
-//        }
-//    }
-//
-//    Thread.sleep(500);
-//
-//    // Step 4: Send/Enter button tap
-//    // enter-button bounds=[981,1331][1067,1428] → center (1024, 1379)
-//    System.out.println("Tapping Send button (1024, 1379)");
-//    adbTap(1024, 1379);
-//    Thread.sleep(2000);
-//
-//    // Step 5: Ad check — show thay to skip, nahi to direct result
-//    System.out.println("⏳ Checking for ad...");
-//    boolean adFound = false;
-//
-//    for (int i = 0; i < 12; i++) {
-//        try { driver.currentActivity(); } catch (Exception ignored) {}
-//        String act = currentActivity();
-//
-//        // Ad screen detect
-//        if (act.contains("FullScreenNativeAdActivity") ||
-//            act.contains("flNativeAd")) {
-//            System.out.println("📺 Ad detected at " + i + "s — waiting for skip...");
-//            adFound = true;
-//            break;
-//        }
-//
-//        // Result already visible — no ad
-//        if (isPresent(By.id(appPackage + ":id/rvMathChatView"))) {
-//            System.out.println("✅ Result visible at " + i + "s — no ad!");
-//            break;
-//        }
-//
-//        System.out.println("   Waiting... " + i + "s");
-//        Thread.sleep(1000);
-//    }
-//
-//    // Ad found — wait 10s then skip
-//    if (adFound) {
-//        System.out.println("⏳ Waiting 10s for skip button...");
-//        for (int i = 10; i > 0; i--) {
-//            System.out.println("   " + i + "s remaining...");
-//            try { driver.currentActivity(); } catch (Exception ignored) {}
-//            Thread.sleep(1000);
-//        }
-//
-//        // Direct ADB tap — btnSkip NAF=true
-//        System.out.println("Tapping Skip (971, 187)");
-//        adbTap(971, 187);
-//        Thread.sleep(1000);
-//
-//        // Browser check
-//        String act = currentActivity();
-//        if (act.contains("chrome") || act.contains("Chrome")) {
-//            System.out.println("🌐 Chrome detected — closing");
-//            Runtime.getRuntime().exec(new String[]{
-//                adbPath, "-s", deviceName, "shell", "am", "force-stop", "com.android.chrome"
-//            }).waitFor();
-//            Thread.sleep(1000);
-//            bringAppBack();
-//        }
-//    }
-//
-//    Thread.sleep(2000);
-//    printScreen("Solution result");
-//    System.out.println("✅ Screen 18 done");
+//    ...commented out version...
 //}
     public static void screen18_SolutionScreen() throws Exception {
         System.out.println("\n========================================");
@@ -1075,7 +981,6 @@ public static String detectDevice() throws Exception {
             try { driver.currentActivity(); } catch (Exception ignored) {}
             String act = currentActivity();
 
-            // Ad detected
             if (act.contains("FullScreenNativeAdActivity") ||
                 act.contains("flNativeAd")) {
                 System.out.println("📺 Ad detected at " + i + "s");
@@ -1083,7 +988,6 @@ public static String detectDevice() throws Exception {
                 break;
             }
 
-            // Result visible — no ad
             if (isPresent(By.id(appPackage + ":id/rvMathChatView"))) {
                 System.out.println("✅ Result visible — no ad!");
                 break;
@@ -1092,7 +996,6 @@ public static String detectDevice() throws Exception {
             Thread.sleep(1000);
         }
 
-        // Ad found — wait 10s then skip
         if (adFound) {
             System.out.println("⏳ Waiting 10s for skip...");
             for (int i = 10; i > 0; i--) {
@@ -1141,42 +1044,41 @@ public static String detectDevice() throws Exception {
         return "unknown";
     }
 
-public static void sendZulipMessage(String message) throws Exception {
-    System.out.println("\n📨 Sending Zulip message...");
+    public static void sendZulipMessage(String message) throws Exception {
+        System.out.println("\n📨 Sending Zulip message...");
 
-    String zulipUrl   = "https://103.254.172.165:8080/api/v1/messages";
-    String botEmail   = "kuldeep-bot@103.254.172.165";
-    String botApiKey  = "aSeLcd1W7JOTDiGBEeYxVglpeidw12Yv";
-    String streamName = "Charul Team";
-    String topicName  = "Daily Task";
+        String zulipUrl   = "https://103.254.172.165:8080/api/v1/messages";
+        String botEmail   = "kuldeep-bot@103.254.172.165";
+        String botApiKey  = "aSeLcd1W7JOTDiGBEeYxVglpeidw12Yv";
+        String streamName = "Charul Team";
+        String topicName  = "Daily Task";
 
-    String encodedMsg    = java.net.URLEncoder.encode(message, "UTF-8");
-    String encodedStream = java.net.URLEncoder.encode(streamName, "UTF-8");
-    String encodedTopic  = java.net.URLEncoder.encode(topicName, "UTF-8");
+        String encodedMsg    = java.net.URLEncoder.encode(message, "UTF-8");
+        String encodedStream = java.net.URLEncoder.encode(streamName, "UTF-8");
+        String encodedTopic  = java.net.URLEncoder.encode(topicName, "UTF-8");
 
-    String postData = "type=stream"
-        + "&to=" + encodedStream
-        + "&topic=" + encodedTopic
-        + "&content=" + encodedMsg;
+        String postData = "type=stream"
+            + "&to=" + encodedStream
+            + "&topic=" + encodedTopic
+            + "&content=" + encodedMsg;
 
-    ProcessBuilder pb = new ProcessBuilder("curl", "-s", "-k",
-        "-X", "POST", zulipUrl,
-        "-u", botEmail + ":" + botApiKey,
-        "--data", postData);
-    pb.redirectErrorStream(true);
-    Process p = pb.start();
-    String response = new String(p.getInputStream().readAllBytes());
-    p.waitFor();
+        ProcessBuilder pb = new ProcessBuilder("curl", "-s", "-k",
+            "-X", "POST", zulipUrl,
+            "-u", botEmail + ":" + botApiKey,
+            "--data", postData);
+        pb.redirectErrorStream(true);
+        Process p = pb.start();
+        String response = new String(p.getInputStream().readAllBytes());
+        p.waitFor();
 
-    System.out.println("Zulip response: " + response);
+        System.out.println("Zulip response: " + response);
 
-    if (response.contains("\"result\":\"success\"")) {
-        System.out.println("✅ Zulip message sent!");
-    } else {
-        System.out.println("⚠️ Zulip send failed: " + response);
+        if (response.contains("\"result\":\"success\"")) {
+            System.out.println("✅ Zulip message sent!");
+        } else {
+            System.out.println("⚠️ Zulip send failed: " + response);
+        }
     }
-}
-
 
     // ================================================================
     //   GO BACK TO HOME
@@ -1198,85 +1100,83 @@ public static void sendZulipMessage(String message) throws Exception {
         Thread.sleep(1500);
     }
 
- 
+
     public static void main(String[] args) {
-    System.out.println("========================================");
-    System.out.println("   MATH SCANNER — 2 QUESTIONS LOOP     ");
-    System.out.println("========================================");
-    try {
-    	
-    	// Auto detect device
-    	deviceName = detectDevice();
-    	System.out.println("🔌 Using device: " + deviceName);
-        String[] questions = generateMathQuestions();
-
-        forceStopApp();
-        launchApp();
-
-        screen1_SplashScreen();
-        screen2_SubscriptionScreen();
-        screen3_InterstitialAd();
-        screen4_LanguageScreen();
-        screen5_Onboarding1();
-        screen6_Onboarding2();
-        screen7_GetStarted();
-        screen8_CameraPermission();
-        screen9_NotificationPermission();
-        screen10_HomeScreen();
-
-        // ── PHASE 1: 2 Questions SCAN ──
-        System.out.println("\n========================================");
-        System.out.println("   PHASE 1 — SCAN BOTH QUESTIONS       ");
         System.out.println("========================================");
+        System.out.println("   MATH SCANNER — 2 QUESTIONS LOOP     ");
+        System.out.println("========================================");
+        try {
 
-        for (int q = 0; q < 2; q++) {
-            System.out.println("\n--- SCAN Q" + (q+1) + ": " + questions[q] + " ---");
-            equation = questions[q];
+            // Auto detect device
+            deviceName = detectDevice();
+            System.out.println("🔌 Using device: " + deviceName);
+            String[] questions = generateMathQuestions();
 
-            preStep_GenerateAndPushImage();
-            Thread.sleep(2000);
-            screen11_ClickGalleryIcon();
-            screen12_SelectImageAndDone();
-            screen13_CropConfirm();
-            screen14_WaitForScan();
-            screen16_AdSkip();
-            screen17_ResultScreen();
+            forceStopApp();
+            launchApp();
 
-            System.out.println("✅ Scan Q" + (q+1) + " done!");
+            screen1_SplashScreen();
+            screen2_SubscriptionScreen();
+            screen3_InterstitialAd();
+            screen4_LanguageScreen();
+            screen5_Onboarding1();
+            screen6_Onboarding2();
+            screen7_GetStarted();
+            screen8_CameraPermission();
+            screen9_NotificationPermission();
+            screen10_HomeScreen();
 
-            // Q1 પછી home પર જાઓ
-            if (q == 0) {
-                System.out.println("⏳ Going home for Q2...");
+            // ── PHASE 1: 2 Questions SCAN ──
+            System.out.println("\n========================================");
+            System.out.println("   PHASE 1 — SCAN BOTH QUESTIONS       ");
+            System.out.println("========================================");
+
+            for (int q = 0; q < 2; q++) {
+                System.out.println("\n--- SCAN Q" + (q+1) + ": " + questions[q] + " ---");
+                equation = questions[q];
+
+                preStep_GenerateAndPushImage();
                 Thread.sleep(2000);
-                goBackToHome();
+                screen11_ClickGalleryIcon();
+                screen12_SelectImageAndDone();
+                screen13_CropConfirm();
+                screen14_WaitForScan();
+                screen16_AdSkip();
+                screen17_ResultScreen();
+
+                System.out.println("✅ Scan Q" + (q+1) + " done!");
+
+                if (q == 0) {
+                    System.out.println("⏳ Going home for Q2...");
+                    Thread.sleep(2000);
+                    goBackToHome();
+                }
             }
+
+            // ── PHASE 2: Solution Screen ──
+            System.out.println("\n========================================");
+            System.out.println("   PHASE 2 — SOLUTION SCREEN           ");
+            System.out.println("========================================");
+
+            equation = questions[1];
+            System.out.println("Solution for: " + equation);
+
+            goBackToHome();
+            screen18_SolutionScreen();
+            String appVersion = getAppVersion();
+
+            sendZulipMessage("AI Math Scanner " + appVersion + ": API Working properly in Live");
+
+            System.out.println("\n========================================");
+            System.out.println("   ✅ ALL DONE!                         ");
+            System.out.println("========================================");
+
+            closeApp();
+
+        } catch (Exception e) {
+            System.out.println("\n❌ ERROR: " + e.getMessage());
+            e.printStackTrace();
+            try { closeApp(); } catch (Exception ex) { }
         }
-
-        // ── PHASE 2: Solution Screen — એક જ વખત ──
-        System.out.println("\n========================================");
-        System.out.println("   PHASE 2 — SOLUTION SCREEN           ");
-        System.out.println("========================================");
-
-        equation = questions[1];
-        System.out.println("Solution for: " + equation);
-
-        goBackToHome();
-        screen18_SolutionScreen();
-        String appVersion = getAppVersion();
-
-        // ── Zulip Message Send ──
-         sendZulipMessage("AI Math Scanner " + appVersion + ": API Working properly in Live");
-
-        System.out.println("\n========================================");
-        System.out.println("   ✅ ALL DONE!                         ");
-        System.out.println("========================================");
-
-        closeApp();
-
-    } catch (Exception e) {
-        System.out.println("\n❌ ERROR: " + e.getMessage());
-        e.printStackTrace();
-        try { closeApp(); } catch (Exception ex) { }
     }
-}
 }
