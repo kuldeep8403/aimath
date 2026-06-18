@@ -17,6 +17,7 @@ public class OnboardingTest {
 
     static AndroidDriver driver;
     static WebDriverWait wait;
+    static String appTaskId = "";   // captured after launch, used to restore foreground
 
     static final String ADB        = "/Users/ios/Library/Android/sdk/platform-tools/adb";
     static final String DEVICE     = "10BG3702ZC0021T";
@@ -69,7 +70,10 @@ public class OnboardingTest {
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         TimeUnit.SECONDS.sleep(4);
-        log("App launched — device: " + DEVICE);
+
+        // Capture app task ID so we can bring it to foreground after external apps open
+        appTaskId = getAppTaskId();
+        log("App launched — device: " + DEVICE + " | taskId: " + appTaskId);
     }
 
     @AfterAll
@@ -152,9 +156,8 @@ public class OnboardingTest {
             adbTap(HELPUS_CONTINUE_X, HELPUS_CONTINUE_Y);
             TimeUnit.SECONDS.sleep(2);
 
-            // Proactively kill external apps regardless — safe even if they didn't open
-            killExternalApps();
-            TimeUnit.SECONDS.sleep(1);
+            // Kill external apps + bring our task to front (triggers HelpUs onResume)
+            killExternalApps();  // includes 2s sleep + task to-front inside
 
             String act = act();
             log("  After attempt " + attempt + ": " + act);
@@ -376,13 +379,47 @@ public class OnboardingTest {
         } catch (Exception e) { return false; }
     }
 
-    /** Proactively kills all known external apps — safe to call even if none opened. */
+    /**
+     * Kills all known external apps, then brings our app's task to foreground.
+     * This triggers onResume on whatever activity is at the top of our task (HelpUs → advances).
+     */
     static void killExternalApps() throws Exception {
         String[] pkgs = {"com.android.chrome", "com.android.vending", "com.bbk.appstore"};
         for (String p : pkgs) {
             Runtime.getRuntime().exec(
                 new String[]{ADB, "-s", DEVICE, "shell", "am", "force-stop", p}).waitFor();
         }
+        // Bring our task back to foreground so HelpUs.onResume() fires
+        if (!appTaskId.isEmpty()) {
+            Runtime.getRuntime().exec(
+                new String[]{ADB, "-s", DEVICE, "shell", "am", "task", "to-front", appTaskId}
+            ).waitFor();
+            log("  Brought task " + appTaskId + " to front");
+        }
+        TimeUnit.SECONDS.sleep(2);
+        // Refresh task ID in case it changed (monkey relaunch creates new task)
+        String newTask = getAppTaskId();
+        if (!newTask.isEmpty()) appTaskId = newTask;
+    }
+
+    /** Reads the current task ID for our app from adb dumpsys. */
+    static String getAppTaskId() {
+        try {
+            ProcessBuilder pb = new ProcessBuilder(ADB, "-s", DEVICE, "shell",
+                "dumpsys", "activity", "activities");
+            pb.redirectErrorStream(true);
+            Process p = pb.start();
+            String out = new String(p.getInputStream().readAllBytes());
+            p.waitFor();
+            for (String line : out.split("\n")) {
+                if (line.contains("topResumedActivity") && line.contains(PKG)) {
+                    java.util.regex.Matcher m =
+                        java.util.regex.Pattern.compile(" t(\\d+) ").matcher(line);
+                    if (m.find()) return m.group(1);
+                }
+            }
+        } catch (Exception ignored) {}
+        return "";
     }
 
     /**
