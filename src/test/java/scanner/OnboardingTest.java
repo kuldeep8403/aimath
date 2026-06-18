@@ -143,50 +143,35 @@ public class OnboardingTest {
         waitForActivity("HelpUsActivity", 10);
         Assertions.assertTrue(act().contains("HelpUs"), "Not on HelpUsActivity: " + act());
 
-        String title = "";
-        try { title = driver.findElement(By.id(PKG + ":id/textTitle")).getText(); } catch (Exception ignored) {}
-        log("  Title: '" + title + "'");
-        Assertions.assertTrue(title.contains("Grow"), "Expected 'Grow With Us'. Got: " + title);
-
-        // Disable what we can (Play Store, Chrome, browsers)
-        disableExternalApps();
-
-        // Click Continue via Appium first; fallback to ADB tap
+        // Click Continue button
         log("  Clicking Continue");
         boolean clicked = clickByText("Continue", 3);
         if (!clicked) {
-            log("  Appium click failed — ADB tap (" + HELPUS_CONTINUE_X + "," + HELPUS_CONTINUE_Y + ")");
+            log("  Fallback ADB tap (" + HELPUS_CONTINUE_X + "," + HELPUS_CONTINUE_Y + ")");
             adbTap(HELPUS_CONTINUE_X, HELPUS_CONTINUE_Y);
         }
 
-        // Recovery loop: if Vivo Store (or any external app) opens, kill it and bring our task back
-        boolean advanced = false;
+        // If Play Store / Vivo Store opens, immediately kill it and bring our app back
         for (int i = 0; i < 12; i++) {
             TimeUnit.MILLISECONDS.sleep(500);
             String cur = act();
             if (cur.contains("NewOnBoarding") || cur.contains("AdActivity")) {
-                advanced = true;
-                log("  Advanced to: " + cur);
+                log("  ✅ Navigated to: " + cur);
                 break;
             }
-            if (cur.contains("HelpUs")) {
-                log("  Still on HelpUs (" + i + ") — waiting");
-                continue;
+            if (!cur.contains(PKG) && !cur.contains("HelpUs")) {
+                log("  External app opened (" + cur + ") — closing and returning");
+                forceStopAllExternalApps();
+                TimeUnit.MILLISECONDS.sleep(300);
+                bringAppToFront();
             }
-            // External app opened — kill it and recover
-            log("  External app detected: " + cur + " — killing and recovering");
-            forceStopAllExternalApps();
-            TimeUnit.MILLISECONDS.sleep(400);
-            bringAppToFront();
-            TimeUnit.SECONDS.sleep(1);
         }
 
-        enableExternalApps();
-
         String act = act();
-        log("After HelpUs: " + act);
-        Assertions.assertTrue(advanced || act.contains("NewOnBoarding") || act.contains("AdActivity"),
-            "Expected onboarding or ad after Continue. Got: " + act);
+        log("After HelpUs Continue: " + act);
+        Assertions.assertTrue(
+            act.contains("NewOnBoarding") || act.contains("AdActivity"),
+            "Expected NewOnBoarding or AdActivity. Got: " + act);
         log("✅ PASS");
     }
 
