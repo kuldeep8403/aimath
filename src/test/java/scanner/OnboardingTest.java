@@ -148,22 +148,27 @@ public class OnboardingTest {
         log("  Title: '" + title + "'");
         Assertions.assertTrue(title.contains("Grow"), "Expected 'Grow With Us'. Got: " + title);
 
-        // KEY FIX: Kill Play Store / Chrome / Vivo Store BEFORE tapping Continue.
-        // If these apps are alive, Continue opens them instead of navigating.
-        // Killing them first causes the intent to fail silently → Continue navigates normally.
-        log("  Killing external apps BEFORE tapping Continue");
-        killExternalApps();
+        // Disable all external store/browser apps so the market:// intent cannot launch anything.
+        // This makes Continue fall through to its in-app navigation.
+        log("  Disabling external apps (Play Store, Chrome, Vivo Store, Browser)");
+        disableExternalApps();
 
-        log("  Tapping Continue (" + HELPUS_CONTINUE_X + "," + HELPUS_CONTINUE_Y + ")");
-        adbTap(HELPUS_CONTINUE_X, HELPUS_CONTINUE_Y);
-        TimeUnit.SECONDS.sleep(3);
+        try {
+            log("  Tapping Continue (" + HELPUS_CONTINUE_X + "," + HELPUS_CONTINUE_Y + ")");
+            adbTap(HELPUS_CONTINUE_X, HELPUS_CONTINUE_Y);
+            TimeUnit.SECONDS.sleep(3);
 
-        String act = act();
-        log("After HelpUs: " + act);
-        Assertions.assertTrue(
-            act.contains("NewOnBoarding") || act.contains("AdActivity"),
-            "Expected onboarding or ad after Continue. Got: " + act);
-        log("✅ PASS");
+            String act = act();
+            log("After HelpUs: " + act);
+            Assertions.assertTrue(
+                act.contains("NewOnBoarding") || act.contains("AdActivity"),
+                "Expected onboarding or ad after Continue. Got: " + act);
+            log("✅ PASS");
+        } finally {
+            // Always re-enable external apps
+            log("  Re-enabling external apps");
+            enableExternalApps();
+        }
     }
 
     @Test @Order(4)
@@ -369,14 +374,40 @@ public class OnboardingTest {
         } catch (Exception e) { return false; }
     }
 
+    static final String[] EXTERNAL_APPS = {
+        "com.android.vending",   // Google Play Store
+        "com.android.chrome",    // Chrome
+        "com.vivo.appstore",     // Vivo App Store (confirmed package on this device)
+        "com.vivo.browser",      // Vivo Browser
+        "com.android.browser",   // AOSP Browser
+    };
+
     /**
-     * Kills Play Store, Chrome, Vivo Store.
-     * Call BEFORE tapping Continue on HelpUs — if these apps are dead the Continue intent
-     * fails silently and HelpUs navigates to NewOnBoardingMainActivity directly.
+     * Disables all known external store/browser apps so the market:// intent
+     * from HelpUs Continue has nowhere to go — Continue then navigates in-app.
+     * Call BEFORE tapping Continue. Always follow with re-enableExternalApps().
      */
+    static void disableExternalApps() throws Exception {
+        for (String p : EXTERNAL_APPS) {
+            Runtime.getRuntime().exec(new String[]{
+                ADB, "-s", DEVICE, "shell", "pm", "disable-user", "--user", "0", p
+            }).waitFor();
+        }
+        Thread.sleep(500);
+    }
+
+    static void enableExternalApps() throws Exception {
+        for (String p : EXTERNAL_APPS) {
+            Runtime.getRuntime().exec(new String[]{
+                ADB, "-s", DEVICE, "shell", "pm", "enable", "--user", "0", p
+            }).waitFor();
+        }
+        Thread.sleep(300);
+    }
+
+    // kept for backward compat — force-stops (used elsewhere)
     static void killExternalApps() throws Exception {
-        String[] pkgs = {"com.android.chrome", "com.android.vending", "com.bbk.appstore"};
-        for (String p : pkgs) {
+        for (String p : EXTERNAL_APPS) {
             Runtime.getRuntime().exec(
                 new String[]{ADB, "-s", DEVICE, "shell", "am", "force-stop", p}).waitFor();
         }
