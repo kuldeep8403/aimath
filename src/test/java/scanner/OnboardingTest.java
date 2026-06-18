@@ -148,31 +148,21 @@ public class OnboardingTest {
         log("  Title: '" + title + "'");
         Assertions.assertTrue(title.contains("Grow"), "Expected 'Grow With Us'. Got: " + title);
 
-        // Continue button sometimes opens Play Store / Chrome / Vivo Store.
-        // Strategy: tap → proactively kill all known external apps → retry up to 3 times.
-        boolean advanced = false;
-        for (int attempt = 1; attempt <= 3; attempt++) {
-            log("  Tapping Continue attempt " + attempt + " (" + HELPUS_CONTINUE_X + "," + HELPUS_CONTINUE_Y + ")");
-            adbTap(HELPUS_CONTINUE_X, HELPUS_CONTINUE_Y);
-            TimeUnit.SECONDS.sleep(2);
+        // KEY FIX: Kill Play Store / Chrome / Vivo Store BEFORE tapping Continue.
+        // If these apps are alive, Continue opens them instead of navigating.
+        // Killing them first causes the intent to fail silently → Continue navigates normally.
+        log("  Killing external apps BEFORE tapping Continue");
+        killExternalApps();
 
-            // Kill external apps + bring our task to front (triggers HelpUs onResume)
-            killExternalApps();  // includes 2s sleep + task to-front inside
+        log("  Tapping Continue (" + HELPUS_CONTINUE_X + "," + HELPUS_CONTINUE_Y + ")");
+        adbTap(HELPUS_CONTINUE_X, HELPUS_CONTINUE_Y);
+        TimeUnit.SECONDS.sleep(3);
 
-            String act = act();
-            log("  After attempt " + attempt + ": " + act);
-            if (act.contains("NewOnBoarding") || act.contains("AdActivity")) {
-                advanced = true;
-                break;
-            }
-            if (act.contains("HelpUs")) {
-                log("  Still on HelpUs — retrying...");
-            }
-        }
-
-        log("After HelpUs: " + act());
-        Assertions.assertTrue(advanced,
-            "Could not advance past Grow With Us after 3 attempts. Got: " + act());
+        String act = act();
+        log("After HelpUs: " + act);
+        Assertions.assertTrue(
+            act.contains("NewOnBoarding") || act.contains("AdActivity"),
+            "Expected onboarding or ad after Continue. Got: " + act);
         log("✅ PASS");
     }
 
@@ -380,8 +370,9 @@ public class OnboardingTest {
     }
 
     /**
-     * Kills all known external apps, then brings our app's task to foreground.
-     * This triggers onResume on whatever activity is at the top of our task (HelpUs → advances).
+     * Kills Play Store, Chrome, Vivo Store.
+     * Call BEFORE tapping Continue on HelpUs — if these apps are dead the Continue intent
+     * fails silently and HelpUs navigates to NewOnBoardingMainActivity directly.
      */
     static void killExternalApps() throws Exception {
         String[] pkgs = {"com.android.chrome", "com.android.vending", "com.bbk.appstore"};
@@ -389,17 +380,7 @@ public class OnboardingTest {
             Runtime.getRuntime().exec(
                 new String[]{ADB, "-s", DEVICE, "shell", "am", "force-stop", p}).waitFor();
         }
-        // Bring our task back to foreground so HelpUs.onResume() fires
-        if (!appTaskId.isEmpty()) {
-            Runtime.getRuntime().exec(
-                new String[]{ADB, "-s", DEVICE, "shell", "am", "task", "to-front", appTaskId}
-            ).waitFor();
-            log("  Brought task " + appTaskId + " to front");
-        }
-        TimeUnit.SECONDS.sleep(2);
-        // Refresh task ID in case it changed (monkey relaunch creates new task)
-        String newTask = getAppTaskId();
-        if (!newTask.isEmpty()) appTaskId = newTask;
+        Thread.sleep(500);
     }
 
     /** Reads the current task ID for our app from adb dumpsys. */
